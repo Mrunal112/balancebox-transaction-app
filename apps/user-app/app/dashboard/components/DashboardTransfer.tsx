@@ -8,6 +8,8 @@ export function DashboardTransfer() {
   const [provider, setProvider] = useState("hdfc");
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAddingMoney, setIsAddingMoney] = useState(false);
+  const [error, setError] = useState("");
 
   // Fetch transactions when component loads
   useEffect(() => {
@@ -27,9 +29,40 @@ export function DashboardTransfer() {
   }, []);
 
   const handleAddMoney = async () => {
-    await onRampTransaction(amount, provider);
-    const recentTransactions = await getRecentTransaction();
-    setTransactions(recentTransactions);
+    // Clear any previous errors
+    setError("");
+
+    // Validate amount
+    if (!amount || amount <= 0) {
+      setError("Please enter a valid amount greater than 0");
+      return;
+    }
+
+    if (amount < 1) {
+      setError("Minimum amount is ₹1");
+      return;
+    }
+
+    try {
+      setIsAddingMoney(true);
+      //   console.log(`Adding ₹${amount} via ${provider}`);
+
+      await onRampTransaction(amount, provider);
+
+      // Refresh transactions after successful addition
+      const recentTransactions = await getRecentTransaction();
+      setTransactions(recentTransactions);
+
+      // Reset form
+      setAmount(0);
+
+      //   console.log("Money added successfully!");
+    } catch (error) {
+      console.error("Error adding money:", error);
+      setError("Failed to add money. Please try again.");
+    } finally {
+      setIsAddingMoney(false);
+    }
   };
   return (
     <div>
@@ -39,6 +72,14 @@ export function DashboardTransfer() {
         {/* Add Money Section */}
         <div className="bg-white rounded-lg shadow-md p-6 h-fit">
           <h3 className="text-lg font-semibold mb-4">Add Money</h3>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -50,9 +91,14 @@ export function DashboardTransfer() {
                 </span>
                 <input
                   type="number"
+                  min="1"
+                  value={amount || ""}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Amount"
-                  onChange={(e) => setAmount(Number(e.target.value))}
+                  onChange={(e) => {
+                    setError(""); // Clear error when user types
+                    setAmount(Number(e.target.value));
+                  }}
                 />
               </div>
             </div>
@@ -87,10 +133,15 @@ export function DashboardTransfer() {
               </div>
             </div>
             <Button
-              className="w-full bg-gray-800 hover:bg-gray-900 text-white"
+              variant="secondary"
+              className={`w-full py-3 px-4 rounded-md font-medium transition-colors ${
+                isAddingMoney
+                  ? "!bg-gray-400 !text-white cursor-not-allowed"
+                  : "!bg-blue-600 hover:!bg-blue-700 !text-white"
+              }`}
               onClick={handleAddMoney}
             >
-              Add Money
+              {isAddingMoney ? "Adding Money..." : "Add Money"}
             </Button>
           </div>
         </div>
@@ -123,25 +174,39 @@ export function DashboardTransfer() {
             ) : transactions.length > 0 ? (
               <div className="space-y-2">
                 {transactions.map((transaction, index) => (
-                  <div key={transaction.id || index} className="bg-gray-50 rounded-lg p-3">
+                  <div
+                    key={transaction.id || index}
+                    className="bg-gray-50 rounded-lg p-3"
+                  >
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-800">
-                          {transaction.status === "Success" ? "Received" : "Processing"} INR
+                          {transaction.status === "Success"
+                            ? "Received"
+                            : "Processing"}{" "}
+                          INR
                         </p>
                         <p className="text-sm text-gray-500">
-                          {new Date(transaction.startTime).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
+                          {new Date(transaction.startTime).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
                         </p>
                       </div>
-                      <span className={`font-semibold ${
-                        transaction.status === "Success" ? "text-green-600" : "text-yellow-600"
-                      }`}>
-                        {transaction.status === "Success" ? "+" : ""} ₹{transaction.amount / 100}
+                      <span
+                        className={`font-semibold ${
+                          transaction.status === "Success"
+                            ? "text-green-600"
+                            : "text-yellow-600"
+                        }`}
+                      >
+                        {transaction.status === "Success" ? "+" : ""} ₹
+                        {transaction.amount / 100}
                       </span>
                     </div>
                   </div>
