@@ -17,6 +17,19 @@ app.post("/hdfcWebhook", async (req, res) => {
     amount: req.body.amount,
   };
 
+  const checkStatus = await db.onRampTransaction.findFirst({
+    where:{
+      token: paymentInformation.token
+    }
+  })
+
+  if(checkStatus?.status === "Success"){
+    console.log("Transaction already processed:", paymentInformation.token);
+    return res.status(200).json({
+      message: "Transaction already processed"
+    });
+  }
+
   try {
     await db.$transaction([
       db.balance.update({

@@ -20,9 +20,9 @@ export function DashboardTransfer() {
         const balance = await getBalance();
         setBalance(balance);
         const recentTransactions = await getRecentTransaction();
-        console.log("Fetched balance:", balance);
+        // console.log("Fetched balance:", balance);
         setTransactions(recentTransactions);
-        console.log("Fetched transactions:", recentTransactions);
+        // console.log("Fetched transactions:", recentTransactions);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       } finally {
