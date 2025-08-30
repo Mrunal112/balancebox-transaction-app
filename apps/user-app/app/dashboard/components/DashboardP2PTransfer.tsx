@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getBalance } from "../../lib/actions/getBalance";
+import { transferMoney } from "../../lib/actions/transferMoney";
 
 export function DashboardP2PTransfer() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -46,8 +47,11 @@ export function DashboardP2PTransfer() {
     setError("");
     setSuccess("");
 
+    // Remove dashes from phone number for validation and sending
+    const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
+
     // Validate phone number
-    if (!phoneNumber || phoneNumber.length !== 10) {
+    if (!cleanPhoneNumber || cleanPhoneNumber.length !== 10) {
       setError("Please enter a valid 10-digit phone number");
       return;
     }
@@ -72,21 +76,22 @@ export function DashboardP2PTransfer() {
     try {
       setLoading(true);
       
-      // TODO: Implement P2P transfer logic
-      // await sendP2PTransfer(phoneNumber, amount);
+      // Call the actual transfer function
+      const result = await transferMoney(amount, cleanPhoneNumber);
       
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setSuccess(`₹${amount} sent successfully to ${phoneNumber}`);
-      
-      // Reset form
-      setPhoneNumber("");
-      setAmount(0);
-      
-      // Refresh balance
-      const updatedBalance = await getBalance();
-      setBalance(updatedBalance);
+      if (result.success) {
+        setSuccess(`₹${amount} sent successfully to ${phoneNumber}`);
+        
+        // Reset form
+        setPhoneNumber("");
+        setAmount(0);
+        
+        // Refresh balance
+        const updatedBalance = await getBalance();
+        setBalance(updatedBalance);
+      } else {
+        setError(result.message || "Transfer failed. Please try again.");
+      }
       
     } catch (error) {
       console.error("Error sending money:", error);

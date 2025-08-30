@@ -8,13 +8,15 @@ datasource db {
 }
 
 model User {
-  id                Int                 @id @default(autoincrement())
-  email             String?             @unique
-  name              String?
-  number            String              @unique
-  password          String
-  Balance           Balance?
-  OnRampTransaction OnRampTransaction[]
+  id                  Int                 @id @default(autoincrement())
+  email               String?             @unique
+  name                String?
+  number              String              @unique
+  password            String
+  Balance             Balance?
+  OnRampTransaction   OnRampTransaction[]
+  sentTransactions    Transaction[]       @relation("userSentTransaction")
+  receiveTransactions Transaction[]       @relation("userReceivedTransaction")
 }
 
 model Merchant {
@@ -41,6 +43,18 @@ model Balance {
   amount Int
   locked Int
   user   User @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id         Int          @id @default(autoincrement())
+  fromUserId Int
+  toUserId   Int
+  amount     Int
+  status     OnRampStatus
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  fromUser   User         @relation("userSentTransaction", fields: [fromUserId], references: [id])
+  toUser     User         @relation("userReceivedTransaction", fields: [toUserId], references: [id])
 }
 
 enum AuthType {
