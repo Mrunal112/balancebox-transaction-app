@@ -35,7 +35,7 @@ export function DashboardSidebar({ activeTab, setActiveTab }: DashboardSidebarPr
           >
             <div className="flex items-center space-x-3">
               <span className="text-lg">💸</span>
-              <span>Transfer</span>
+              <span>Add Money</span>
             </div>
           </button>
           <button
@@ -49,6 +49,19 @@ export function DashboardSidebar({ activeTab, setActiveTab }: DashboardSidebarPr
             <div className="flex items-center space-x-3">
               <span className="text-lg">📊</span>
               <span>Transactions</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("p2p-transfer")}
+            className={`w-full text-left px-6 py-4 rounded-lg transition-all duration-200 ${
+              activeTab === "p2p-transfer" 
+                ? "bg-blue-50 text-blue-700 font-medium border-l-4 border-blue-500 shadow-sm" 
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-lg">📤</span>
+              <span>Send Money</span>
             </div>
           </button>
         </nav>

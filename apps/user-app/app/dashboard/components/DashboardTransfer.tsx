@@ -2,6 +2,7 @@ import { Button } from "@balancebox/ui/button";
 import { onRampTransaction } from "../../lib/actions/createOnRampTransaction";
 import { getRecentTransaction } from "../../lib/actions/getRecentTransaction";
 import { useState, useEffect } from "react";
+import { getBalance } from "../../lib/actions/getBalance";
 
 export function DashboardTransfer() {
   const [amount, setAmount] = useState(0);
@@ -10,12 +11,16 @@ export function DashboardTransfer() {
   const [loading, setLoading] = useState(true);
   const [isAddingMoney, setIsAddingMoney] = useState(false);
   const [error, setError] = useState("");
+  const [balance, setBalance] = useState<{ amount: number; locked: number }>({ amount: 0, locked: 0 });
 
   // Fetch transactions when component loads
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
+        const balance = await getBalance();
+        setBalance(balance);
         const recentTransactions = await getRecentTransaction();
+        console.log("Fetched balance:", balance);
         setTransactions(recentTransactions);
         console.log("Fetched transactions:", recentTransactions);
       } catch (error) {
@@ -152,15 +157,15 @@ export function DashboardTransfer() {
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2">
               <span className="text-gray-600">Unlocked balance</span>
-              <span className="font-semibold">₹200 INR</span>
+              <span className="font-semibold">₹{balance.amount} INR</span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-gray-600">Total Locked Balance</span>
-              <span className="font-semibold">₹0 INR</span>
+              <span className="font-semibold">₹{balance.locked} INR</span>
             </div>
             <div className="flex justify-between items-center py-2 border-t pt-4">
               <span className="text-gray-700 font-medium">Total Balance</span>
-              <span className="font-bold text-lg">₹200 INR</span>
+              <span className="font-bold text-lg">₹{balance.amount + balance.locked} INR</span>
             </div>
           </div>
 
@@ -206,7 +211,7 @@ export function DashboardTransfer() {
                         }`}
                       >
                         {transaction.status === "Success" ? "+" : ""} ₹
-                        {transaction.amount / 100}
+                        {transaction.amount}
                       </span>
                     </div>
                   </div>

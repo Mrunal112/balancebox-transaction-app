@@ -7,7 +7,7 @@ export async function getRecentTransaction() {
   const session = await getServerSession(authOptions);
   const user = session?.user?.id;
 
-  const transaction = await prisma.onRampTransaction.findMany({
+  const transactions = await prisma.onRampTransaction.findMany({
     where: {
       userId: Number(user),
     },
@@ -17,5 +17,9 @@ export async function getRecentTransaction() {
     take: 5,
   });
 
-  return transaction;
+  // Convert amounts from paise to rupees
+  return transactions.map(transaction => ({
+    ...transaction,
+    amount: transaction.amount / 100
+  }));
 }
