@@ -157,3 +157,6 @@ Dockerfile
 
 # Local development
 .local
+
+# Exclude merchant-app from version control
+apps/merchant-app/
